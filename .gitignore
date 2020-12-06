@@ -1,1 +1,1 @@
-*.so
+socket-intercepting/socket_hook.so

@@ -8,10 +8,13 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <dlfcn.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
     
 int (*o_socket)(int,int,int);
 
-static int initialized;
+static __thread int initialized;
     
 int socket(int domain, int type, int protocol)
 {
@@ -23,15 +26,15 @@ int socket(int domain, int type, int protocol)
         printf("Could not find next socket() function occurrence");
         return -1;
     }
-    
-    printf("socket() call intercepted\n");
 
     if (!initialized) {
+        pid_t tid = syscall(__NR_gettid);
         initialized = !initialized;
 
-        printf("sleep in first socket() call\n");
+        printf("[%d]socket() call intercepted\n", tid);
+        printf("[%d]sleep in first socket() call\n", tid);
         sleep(5);
-        printf("sleep end\n");
+        printf("[%d]sleep end\n", tid);
     }
     
     // return the result of the call to the original C socket() function
